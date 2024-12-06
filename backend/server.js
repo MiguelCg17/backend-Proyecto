@@ -21,9 +21,8 @@ const db = mysql.createPool(dbUrl);
 
 // Ruta para servir el formulario de inicio de sesión
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html')); // Ruta correcta a la carpeta 'public'
+    res.sendFile(path.join(__dirname, 'login.html'));
 });
-
 
 // Ruta para autenticar al usuario
 app.post('/login', (req, res) => {
