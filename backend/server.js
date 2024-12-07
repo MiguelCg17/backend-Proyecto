@@ -10,7 +10,6 @@ const port = process.env.PORT || 3000;
 
 app.use(cors({ origin: 'https://miguelcg17.github.io/frontend-Proyecto' }));
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -57,7 +56,7 @@ app.get('/animales', (req, res) => {
 
 app.post('/animales', (req, res) => {
     const { id_animal, Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
+    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;  // Cambiado
 
     // Consulta para insertar el nuevo animal usando el id_animal proporcionado
     const query = `INSERT INTO animal (id_animal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
@@ -142,8 +141,7 @@ app.get('/generar-pdf/:id_animal', (req, res) => {
 app.put('/animales/:id_animal', (req, res) => {
     const idAnimal = req.params.id_animal;
     const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;
-
+    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;  // Cambiado
 
     const query = `UPDATE animal 
                    SET Nombre = ?, Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
@@ -166,7 +164,3 @@ app.put('/animales/:id_animal', (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor corriendo en ${port}`);
 });
-
-
-
-
