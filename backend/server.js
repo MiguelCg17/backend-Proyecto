@@ -1,22 +1,20 @@
 const express = require('express');
-const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
 const fs = require('fs');
-require('dotenv').config();  
+require('dotenv').config();
+
 const app = express();
-const port = process.env.PORT || 3000;  
+const port = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-app.use('/images', express.static(path.join(__dirname, '..', 'images')));
-
-
+// Configuración de conexión a la base de datos
 const dbUrl = process.env.DB_URL;
 const db = mysql.createPool(dbUrl);
 
-
+// Ruta para obtener todos los animales
 app.get('/animales', (req, res) => {
     const query = 'SELECT * FROM animal';
     db.query(query, (err, results) => {
@@ -31,7 +29,6 @@ app.get('/animales', (req, res) => {
 // Agregar un nuevo animal
 app.post('/animales', (req, res) => {
     const { Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-
     const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
@@ -77,7 +74,7 @@ app.get('/animales/:nombre', (req, res) => {
     });
 });
 
-
+// Generar un PDF con la información de un animal
 app.get('/generar-pdf/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const query = 'SELECT * FROM animal WHERE Nombre = ?';
@@ -93,17 +90,12 @@ app.get('/generar-pdf/:nombre', (req, res) => {
 
         const animal = results[0];
 
-        
-        const habitatImagePath = path.join(__dirname, '..', 'images', 'habitats', animal.Link.replace('/images/habitats/', ''));
-
-      
         const doc = new pdf();
         doc.pipe(res);
 
         doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
         doc.moveDown();
 
- 
         doc.fontSize(12).text(`Especie: ${animal.Especie}`);
         doc.text(`Edad: ${animal.Edad} años`);
         doc.text(`Hábitat: ${animal.Habitat}`);
@@ -113,23 +105,14 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         doc.text(`Descripción: ${animal.Descripcion}`);
         doc.moveDown();
 
-    
-        fs.exists(habitatImagePath, (exists) => {
-            if (exists) {
-                console.log('Imagen encontrada, agregándola al PDF.');
-                doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
-            } else {
-                console.log('Imagen no encontrada, mostrando mensaje.');
-                doc.text('Imagen del hábitat no disponible.', { align: 'center' });
-            }
+        // Nota: El manejo de imágenes en el PDF fue removido
+        doc.text('Nota: Las imágenes del hábitat no están incluidas en este PDF.', { align: 'center' });
 
-          
-            doc.end();
-        });
+        doc.end();
     });
 });
 
-
+// Actualizar un animal existente
 app.put('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const { Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
@@ -138,7 +121,7 @@ app.put('/animales/:nombre', (req, res) => {
         return res.status(400).send('Todos los campos son necesarios para actualizar el animal.');
     }
 
-    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;  
+    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `UPDATE animal 
                    SET Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
@@ -162,3 +145,4 @@ app.put('/animales/:nombre', (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor corriendo en el puerto ${port}`);
 });
+
