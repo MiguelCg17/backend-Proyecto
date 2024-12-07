@@ -117,6 +117,8 @@ app.get('/generar-pdf/:id_animal', (req, res) => {
         const habitatImagePath = animal.Link;
 
         const doc = new pdf();
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${animal.Nombre}-animal.pdf"`);
         doc.pipe(res);
 
         doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
