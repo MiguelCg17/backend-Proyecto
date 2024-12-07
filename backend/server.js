@@ -8,7 +8,8 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'https://miguelcg17.github.io' }));
+app.use(cors({ origin: 'https://miguelcg17.github.io/frontend-Proyecto' }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -141,7 +142,8 @@ app.get('/generar-pdf/:id_animal', (req, res) => {
 app.put('/animales/:id_animal', (req, res) => {
     const idAnimal = req.params.id_animal;
     const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-    const Link = `https://miguelcg17.github.io/images/habitats/${Habitat.toLowerCase()}.jpg`;
+    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;
+
 
     const query = `UPDATE animal 
                    SET Nombre = ?, Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
