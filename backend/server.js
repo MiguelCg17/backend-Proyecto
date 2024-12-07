@@ -1,24 +1,17 @@
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
 const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid'); 
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-
 app.use(cors({ origin: 'https://miguelcg17.github.io' }));
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
-//app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
 // Configuración de la base de datos
 const dbUrl = process.env.DB_URL;
@@ -62,17 +55,14 @@ app.get('/animales', (req, res) => {
 });
 
 app.post('/animales', (req, res) => {
-    const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
+    const { id_animal, Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
     const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
-    // Generar un UUID único para el animal
-    const idAnimal = uuidv4();
-
-    // Consulta para insertar el nuevo animal con su ID único generado
+    // Consulta para insertar el nuevo animal usando el id_animal proporcionado
     const query = `INSERT INTO animal (id_animal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [idAnimal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link], (err, result) => {
+    db.query(query, [id_animal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link], (err, result) => {
         if (err) {
             console.error('Error al insertar los datos:', err.message);
             return res.status(500).send('Error al insertar los datos.');
@@ -81,51 +71,50 @@ app.post('/animales', (req, res) => {
     });
 });
 
-app.delete('/animales/:nombre', (req, res) => {
-    const nombreAnimal = req.params.nombre;
-    const query = 'DELETE FROM animal WHERE Nombre = ?';
-    db.query(query, [nombreAnimal], (err, result) => {
+app.delete('/animales/:id_animal', (req, res) => {
+    const idAnimal = req.params.id_animal;
+    const query = 'DELETE FROM animal WHERE id_animal = ?';
+    db.query(query, [idAnimal], (err, result) => {
         if (err) {
             console.error('Error al eliminar el animal:', err.message);
             return res.status(500).send('Error al eliminar el animal.');
         }
-        res.status(200).send(`Animal ${nombreAnimal} eliminado correctamente.`);
+        res.status(200).send(`Animal con ID ${idAnimal} eliminado correctamente.`);
     });
 });
 
-app.get('/animales/:nombre', (req, res) => {
-    const nombreAnimal = req.params.nombre;
-    const query = 'SELECT * FROM animal WHERE Nombre = ?';
-    db.query(query, [nombreAnimal], (err, results) => {
+app.get('/animales/:id_animal', (req, res) => {
+    const idAnimal = req.params.id_animal;
+    const query = 'SELECT * FROM animal WHERE id_animal = ?';
+    db.query(query, [idAnimal], (err, results) => {
         if (err) {
             console.error('Error al obtener el animal:', err.message);
             return res.status(500).send('Error al obtener el animal.');
         }
 
         if (results.length === 0) {
-            return res.status(404).send(`No se encontró un animal con el nombre "${nombreAnimal}".`);
+            return res.status(404).send(`No se encontró un animal con el ID "${idAnimal}".`);
         }
 
         res.json(results[0]);
     });
 });
 
-app.get('/generar-pdf/:nombre', (req, res) => {
-    const nombreAnimal = req.params.nombre;
-    const query = 'SELECT * FROM animal WHERE Nombre = ?';
-    db.query(query, [nombreAnimal], (err, results) => {
+app.get('/generar-pdf/:id_animal', (req, res) => {
+    const idAnimal = req.params.id_animal;
+    const query = 'SELECT * FROM animal WHERE id_animal = ?';
+    db.query(query, [idAnimal], (err, results) => {
         if (err) {
             console.error('Error al obtener el animal para PDF:', err.message);
             return res.status(500).send('Error al obtener el animal para PDF.');
         }
 
         if (results.length === 0) {
-            return res.status(404).send(`No se encontró un animal con el nombre "${nombreAnimal}".`);
+            return res.status(404).send(`No se encontró un animal con el ID "${idAnimal}".`);
         }
 
         const animal = results[0];
-        const habitatImagePath = animal.Link;  
-
+        const habitatImagePath = animal.Link;
 
         const doc = new pdf();
         doc.pipe(res);
@@ -144,28 +133,26 @@ app.get('/generar-pdf/:nombre', (req, res) => {
 
         doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
         doc.end();
-        
     });
 });
 
-app.put('/animales/:nombre', (req, res) => {
-    const nombreAnimal = req.params.nombre;
-    const { Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
+app.put('/animales/:id_animal', (req, res) => {
+    const idAnimal = req.params.id_animal;
+    const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
     const Link = `https://miguelcg17.github.io/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
-
     const query = `UPDATE animal 
-                   SET Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
-                   WHERE Nombre = ?`;
+                   SET Nombre = ?, Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
+                   WHERE id_animal = ?`;
 
-    db.query(query, [Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link, nombreAnimal], (err, result) => {
+    db.query(query, [Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link, idAnimal], (err, result) => {
         if (err) {
             console.error('Error al actualizar los datos:', err.message);
             return res.status(500).send('Error al actualizar los datos.');
         }
 
         if (result.affectedRows === 0) {
-            return res.status(404).send(`No se encontró un animal con el nombre "${nombreAnimal}".`);
+            return res.status(404).send(`No se encontró un animal con el ID "${idAnimal}".`);
         }
 
         res.status(200).send('Animal actualizado correctamente.');
@@ -175,6 +162,7 @@ app.put('/animales/:nombre', (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor corriendo en ${port}`);
 });
+
 
 
 
