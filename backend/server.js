@@ -3,13 +3,13 @@ const cors = require('cors');
 const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
+const axios = require('axios');  // Importar axios
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -101,11 +101,11 @@ app.get('/animales/:id_animal', (req, res) => {
     });
 });
 
-app.get('/generar-pdf/:id_animal', (req, res) => {
+app.get('/generar-pdf/:id_animal', async (req, res) => {
     const idAnimal = req.params.id_animal;
     const query = 'SELECT * FROM animal WHERE id_animal = ?';
 
-    db.query(query, [idAnimal], (err, results) => {
+    db.query(query, [idAnimal], async (err, results) => {
         if (err) {
             console.error('Error al obtener el animal para PDF:', err.message);
             return res.status(500).send('Error al obtener el animal para PDF.');
@@ -116,37 +116,45 @@ app.get('/generar-pdf/:id_animal', (req, res) => {
         }
 
         const animal = results[0];
-        const habitatImagePath = animal.Link;  // La ruta de la imagen del hábitat
+        const habitatImageUrl = animal.Link;  // La URL de la imagen del hábitat
 
-        // Crear el PDF
-        const doc = new pdf();
+        try {
+            // Descargar la imagen usando axios
+            const response = await axios.get(habitatImageUrl, { responseType: 'arraybuffer' });
+            const imageBuffer = Buffer.from(response.data);
 
-        // Establecer los encabezados para la descarga del archivo PDF
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=animal_${idAnimal}.pdf`);
+            // Crear el PDF
+            const doc = new pdf();
 
-        // Generar el contenido del PDF
-        doc.pipe(res); // Enviar el PDF directamente al cliente
+            // Establecer los encabezados para la descarga del archivo PDF
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=animal_${idAnimal}.pdf`);
 
-        doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
-        doc.moveDown();
+            // Generar el contenido del PDF
+            doc.pipe(res); // Enviar el PDF directamente al cliente
 
-        doc.fontSize(12).text(`Especie: ${animal.Especie}`);
-        doc.text(`Edad: ${animal.Edad} años`);
-        doc.text(`Hábitat: ${animal.Habitat}`);
-        doc.text(`Dieta: ${animal.dieta}`);
-        doc.text(`Estado de Conservación: ${animal.Estado_Conservacion}`);
-        doc.text(`País de Origen: ${animal.Pais_Origen}`);
-        doc.text(`Descripción: ${animal.Descripcion}`);
-        doc.moveDown();
+            doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
+            doc.moveDown();
 
-        // Agregar la imagen del hábitat
-        doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
+            doc.fontSize(12).text(`Especie: ${animal.Especie}`);
+            doc.text(`Edad: ${animal.Edad} años`);
+            doc.text(`Hábitat: ${animal.Habitat}`);
+            doc.text(`Dieta: ${animal.dieta}`);
+            doc.text(`Estado de Conservación: ${animal.Estado_Conservacion}`);
+            doc.text(`País de Origen: ${animal.Pais_Origen}`);
+            doc.text(`Descripción: ${animal.Descripcion}`);
+            doc.moveDown();
 
-        doc.end(); // Finalizar el PDF
+            // Agregar la imagen del hábitat desde el buffer
+            doc.image(imageBuffer, { fit: [500, 400], align: 'center' });
+
+            doc.end(); // Finalizar el PDF
+        } catch (downloadError) {
+            console.error('Error al descargar la imagen:', downloadError.message);
+            return res.status(500).send('Error al descargar la imagen del hábitat.');
+        }
     });
 });
-
 
 app.put('/animales/:id_animal', (req, res) => {
     const idAnimal = req.params.id_animal;
