@@ -104,6 +104,7 @@ app.get('/animales/:id_animal', (req, res) => {
 app.get('/generar-pdf/:id_animal', (req, res) => {
     const idAnimal = req.params.id_animal;
     const query = 'SELECT * FROM animal WHERE id_animal = ?';
+
     db.query(query, [idAnimal], (err, results) => {
         if (err) {
             console.error('Error al obtener el animal para PDF:', err.message);
@@ -115,12 +116,17 @@ app.get('/generar-pdf/:id_animal', (req, res) => {
         }
 
         const animal = results[0];
-        const habitatImagePath = animal.Link;
+        const habitatImagePath = animal.Link;  // La ruta de la imagen del hábitat
 
+        // Crear el PDF
         const doc = new pdf();
+
+        // Establecer los encabezados para la descarga del archivo PDF
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${animal.Nombre}-animal.pdf"`);
-        doc.pipe(res);
+        res.setHeader('Content-Disposition', `attachment; filename=animal_${idAnimal}.pdf`);
+
+        // Generar el contenido del PDF
+        doc.pipe(res); // Enviar el PDF directamente al cliente
 
         doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
         doc.moveDown();
@@ -134,10 +140,13 @@ app.get('/generar-pdf/:id_animal', (req, res) => {
         doc.text(`Descripción: ${animal.Descripcion}`);
         doc.moveDown();
 
+        // Agregar la imagen del hábitat
         doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
-        doc.end();
+
+        doc.end(); // Finalizar el PDF
     });
 });
+
 
 app.put('/animales/:id_animal', (req, res) => {
     const idAnimal = req.params.id_animal;
