@@ -8,7 +8,8 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'https://miguelcg17.github.io/frontend-Proyecto' }));
+app.use(cors({ origin: 'https://miguelcg17.github.io' }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
