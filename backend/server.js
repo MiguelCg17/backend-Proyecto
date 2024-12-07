@@ -156,8 +156,8 @@ app.get('/generar-pdf/:nombre', (req, res) => {
 app.put('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const { Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
+    const Link = `https://miguelcg17.github.io/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
-    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `UPDATE animal 
                    SET Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
