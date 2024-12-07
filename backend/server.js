@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use('/images', express.static(path.join(__dirname, '..', 'images')));
+//app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
 // Configuración de la base de datos
 const dbUrl = process.env.DB_URL;
@@ -124,7 +124,8 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         }
 
         const animal = results[0];
-        const habitatImagePath = path.join(__dirname, '..', 'images', 'habitats', animal.Link.replace('/images/habitats/', ''));
+        const habitatImagePath = animal.Link;  
+
 
         const doc = new pdf();
         doc.pipe(res);
@@ -141,15 +142,9 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         doc.text(`Descripción: ${animal.Descripcion}`);
         doc.moveDown();
 
-        fs.exists(habitatImagePath, (exists) => {
-            if (exists) {
-                doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
-            } else {
-                doc.text('Imagen del hábitat no disponible.', { align: 'center' });
-            }
-
-            doc.end();
-        });
+        doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
+        doc.end();
+        
     });
 });
 
