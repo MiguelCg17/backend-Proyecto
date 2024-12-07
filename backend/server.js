@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); // Importar el paquete CORS
 const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
@@ -8,51 +9,46 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000; 
 
+// Middleware para habilitar CORS
+app.use(cors({ origin: 'https://miguelcg17.github.io' })); // Permitir solo tu frontend en GitHub Pages
+// Si deseas permitir todos los orígenes (no recomendado en producción):
+// app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware para servir imágenes estáticas
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
+// Configuración de la base de datos
 const dbUrl = process.env.DB_URL;
-
-
 const db = mysql.createPool(dbUrl);
 
-
-
-
+// Rutas
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
-  
     const validUsername = 'admin';
     const validPassword = 'admin123';
 
-   
     if (username === validUsername && password === validPassword) {
-       
         res.redirect('/admin');
     } else {
-        
         res.send('<h1>Credenciales incorrectas. Por favor, intenta de nuevo.</h1><a href="/login">Volver a intentar</a>');
     }
 });
 
-
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname,  'admin.html'));
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
-
 
 app.get('/usuario', (req, res) => {
     res.sendFile(path.join(__dirname, 'usuario.html'));
 });
-
 
 app.get('/animales', (req, res) => {
     const query = 'SELECT * FROM animal';
@@ -65,11 +61,8 @@ app.get('/animales', (req, res) => {
     });
 });
 
-
 app.post('/animales', (req, res) => {
     const { Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-
-   
     const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`; 
 
     const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
@@ -84,7 +77,6 @@ app.post('/animales', (req, res) => {
     });
 });
 
-
 app.delete('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const query = 'DELETE FROM animal WHERE Nombre = ?';
@@ -96,7 +88,6 @@ app.delete('/animales/:nombre', (req, res) => {
         res.status(200).send(`Animal ${nombreAnimal} eliminado correctamente.`);
     });
 });
-
 
 app.get('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
@@ -115,7 +106,6 @@ app.get('/animales/:nombre', (req, res) => {
     });
 });
 
-
 app.get('/generar-pdf/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const query = 'SELECT * FROM animal WHERE Nombre = ?';
@@ -130,19 +120,14 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         }
 
         const animal = results[0];
-
-       
         const habitatImagePath = path.join(__dirname, '..', 'images', 'habitats', animal.Link.replace('/images/habitats/', ''));
 
-        
         const doc = new pdf();
         doc.pipe(res);
 
-      
         doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
         doc.moveDown();
 
-        
         doc.fontSize(12).text(`Especie: ${animal.Especie}`);
         doc.text(`Edad: ${animal.Edad} años`);
         doc.text(`Hábitat: ${animal.Habitat}`);
@@ -152,17 +137,13 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         doc.text(`Descripción: ${animal.Descripcion}`);
         doc.moveDown();
 
-     
         fs.exists(habitatImagePath, (exists) => {
             if (exists) {
-                console.log('Imagen encontrada, agregándola al PDF.');
                 doc.image(habitatImagePath, { fit: [500, 400], align: 'center' });
             } else {
-                console.log('Imagen no encontrada, mostrando mensaje.');
                 doc.text('Imagen del hábitat no disponible.', { align: 'center' });
             }
 
-          
             doc.end();
         });
     });
@@ -172,7 +153,6 @@ app.put('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const { Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
 
-   
     if (!Especie || !Edad || !Habitat || !dieta || !Estado_Conservacion || !Pais_Origen || !Descripcion) {
         return res.status(400).send('Todos los campos son necesarios para actualizar el animal.');
     }
@@ -197,8 +177,8 @@ app.put('/animales/:nombre', (req, res) => {
     });
 });
 
-
 app.listen(port, () => {
     console.log(`Servidor corriendo en ${port}`);
 });
+
 
