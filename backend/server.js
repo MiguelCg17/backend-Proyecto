@@ -4,10 +4,10 @@ const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
 const fs = require('fs');
-require('dotenv').config();  
+require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000; 
+const port = process.env.PORT || 3000;
 
 // Middleware para habilitar CORS
 app.use(cors({ origin: 'https://miguelcg17.github.io' })); // Permitir solo tu frontend en GitHub Pages
@@ -62,8 +62,8 @@ app.get('/animales', (req, res) => {
 });
 
 app.post('/animales', (req, res) => {
-    const { Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`; 
+    const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
+    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -151,13 +151,9 @@ app.get('/generar-pdf/:nombre', (req, res) => {
 
 app.put('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
-    const { Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
+    const { Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
 
-    if (!Especie || !Edad || !Habitat || !dieta || !Estado_Conservacion || !Pais_Origen || !Descripcion) {
-        return res.status(400).send('Todos los campos son necesarios para actualizar el animal.');
-    }
-
-    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;  
+    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `UPDATE animal 
                    SET Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
