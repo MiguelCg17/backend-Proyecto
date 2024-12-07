@@ -1,24 +1,23 @@
 const express = require('express');
-const cors = require('cors'); // Importar el paquete CORS
+const cors = require('cors'); 
 const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
 const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');  // Importamos uuid para generar IDs únicos
+const { v4: uuidv4 } = require('uuid'); 
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware para habilitar CORS
-app.use(cors({ origin: 'https://miguelcg17.github.io' })); // Permitir solo tu frontend en GitHub Pages
-// Si deseas permitir todos los orígenes (no recomendado en producción):
-// app.use(cors());
+
+app.use(cors({ origin: 'https://miguelcg17.github.io' }));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware para servir imágenes estáticas
+
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
 // Configuración de la base de datos
