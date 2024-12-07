@@ -3,9 +3,10 @@ const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
 const fs = require('fs');
-require('dotenv').config();  
+require('dotenv').config();  // Cargar las variables de entorno desde el archivo .env
+
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;  // Usa la variable de entorno PORT
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,7 +22,7 @@ const db = mysql.createPool(dbUrl);
 
 // Ruta para servir el formulario de inicio de sesión
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'login.html'));
+    res.sendFile(path.join(__dirname, '..', 'Frontend', 'login.html'));
 });
 
 // Ruta para autenticar al usuario
@@ -34,22 +35,22 @@ app.post('/login', (req, res) => {
 
     // Verificar si las credenciales son correctas
     if (username === validUsername && password === validPassword) {
-     
+        // Redirigir al panel de administración si las credenciales son correctas
         res.redirect('/admin');
     } else {
-      
+        // Si las credenciales son incorrectas, redirigir de nuevo al login
         res.send('<h1>Credenciales incorrectas. Por favor, intenta de nuevo.</h1><a href="/login">Volver a intentar</a>');
     }
 });
 
 // Ruta para servir el formulario de administración
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
+    res.sendFile(path.join(__dirname, '..', 'Frontend', 'admin.html'));
 });
 
 // Ruta para servir el formulario de usuario
 app.get('/usuario', (req, res) => {
-    res.sendFile(path.join(__dirname, 'usuario.html'));
+    res.sendFile(path.join(__dirname, '..', 'Frontend', 'usuario.html'));
 });
 
 // Obtener todos los animales
@@ -96,7 +97,7 @@ app.delete('/animales/:nombre', (req, res) => {
     });
 });
 
-
+// Obtener un animal específico por nombre
 app.get('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const query = 'SELECT * FROM animal WHERE Nombre = ?';
@@ -130,14 +131,14 @@ app.get('/generar-pdf/:nombre', (req, res) => {
 
         const animal = results[0];
 
-       
+        // Obtener la ruta de la imagen del hábitat desde la base de datos
         const habitatImagePath = path.join(__dirname, '..', 'images', 'habitats', animal.Link.replace('/images/habitats/', ''));
 
-       
+        // Crear el documento PDF
         const doc = new pdf();
         doc.pipe(res);
 
-     
+        // Agregar título
         doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
         doc.moveDown();
 
@@ -161,7 +162,7 @@ app.get('/generar-pdf/:nombre', (req, res) => {
                 doc.text('Imagen del hábitat no disponible.', { align: 'center' });
             }
 
-           
+            // Finalizar documento PDF
             doc.end();
         });
     });
