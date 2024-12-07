@@ -5,8 +5,19 @@ const pdf = require('pdfkit');
 const fs = require('fs');
 require('dotenv').config();  // Cargar las variables de entorno desde el archivo .env
 
+// Importar CORS
+const cors = require('cors');
+
 const app = express();
 const port = process.env.PORT || 3000;  // Usa la variable de entorno PORT
+
+// Habilitar CORS para todas las rutas
+app.use(cors());  // Esto permitirá solicitudes desde cualquier dominio
+
+// Si deseas permitir solo ciertos orígenes, puedes especificar así:
+// app.use(cors({
+//     origin: 'https://tudominio.github.io'  // Reemplaza con el dominio de tu frontend
+// }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
