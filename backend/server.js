@@ -19,17 +19,18 @@ app.use(cors());  // Esto permitirá solicitudes desde cualquier dominio
 //     origin: 'https://tudominio.github.io'  // Reemplaza con el dominio de tu frontend
 // }));
 
+// Middleware para poder recibir JSON y datos URL-encoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas para servir imágenes estáticas (en caso de que quieras servir imágenes de animales, por ejemplo)
-app.use('/images', express.static(path.join(__dirname, '..', 'images')));
+// Configuración para servir archivos estáticos (como admin.html y usuario.html)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Configuración de la base de datos
+// Rutas de la API para acceder a los datos de los animales
 const dbUrl = process.env.DB_URL;
 const db = mysql.createPool(dbUrl);
 
-// Rutas de la API (no se sirven archivos HTML desde aquí)
+// Rutas de la API
 app.get('/animales', (req, res) => {
     const query = 'SELECT * FROM animal';
     db.query(query, (err, results) => {
@@ -44,7 +45,6 @@ app.get('/animales', (req, res) => {
 // Agregar un nuevo animal
 app.post('/animales', (req, res) => {
     const { Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-
     const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
@@ -105,8 +105,6 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         }
 
         const animal = results[0];
-
-        // Obtener la ruta de la imagen del hábitat desde la base de datos
         const habitatImagePath = path.join(__dirname, '..', 'images', 'habitats', animal.Link.replace('/images/habitats/', ''));
 
         // Crear el documento PDF
