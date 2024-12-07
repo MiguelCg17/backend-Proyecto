@@ -3,34 +3,20 @@ const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
 const fs = require('fs');
-require('dotenv').config();  // Cargar las variables de entorno desde el archivo .env
-
-// Importar CORS
-const cors = require('cors');
-
+require('dotenv').config();  
 const app = express();
-const port = process.env.PORT || 3000;  // Usa la variable de entorno PORT
-
-// Habilitar CORS para todas las rutas
-app.use(cors());  // Esto permitirá solicitudes desde cualquier dominio
-
-// Si deseas permitir solo ciertos orígenes, puedes especificar así:
-// app.use(cors({
-//     origin: 'https://tudominio.github.io'  // Reemplaza con el dominio de tu frontend
-// }));
-
-// Middleware para poder recibir JSON y datos URL-encoded
+const port = process.env.PORT || 3000;  
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración para servir archivos estáticos (como admin.html y usuario.html)
-app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Rutas de la API para acceder a los datos de los animales
+app.use('/images', express.static(path.join(__dirname, '..', 'images')));
+
+
 const dbUrl = process.env.DB_URL;
 const db = mysql.createPool(dbUrl);
 
-// Rutas de la API
+
 app.get('/animales', (req, res) => {
     const query = 'SELECT * FROM animal';
     db.query(query, (err, results) => {
@@ -45,6 +31,7 @@ app.get('/animales', (req, res) => {
 // Agregar un nuevo animal
 app.post('/animales', (req, res) => {
     const { Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
+
     const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
@@ -90,7 +77,7 @@ app.get('/animales/:nombre', (req, res) => {
     });
 });
 
-// Ruta para generar el PDF con la imagen del hábitat
+
 app.get('/generar-pdf/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const query = 'SELECT * FROM animal WHERE Nombre = ?';
@@ -105,17 +92,18 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         }
 
         const animal = results[0];
+
+        
         const habitatImagePath = path.join(__dirname, '..', 'images', 'habitats', animal.Link.replace('/images/habitats/', ''));
 
-        // Crear el documento PDF
+      
         const doc = new pdf();
         doc.pipe(res);
 
-        // Agregar título
         doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
         doc.moveDown();
 
-        // Agregar la información del animal
+ 
         doc.fontSize(12).text(`Especie: ${animal.Especie}`);
         doc.text(`Edad: ${animal.Edad} años`);
         doc.text(`Hábitat: ${animal.Habitat}`);
@@ -125,7 +113,7 @@ app.get('/generar-pdf/:nombre', (req, res) => {
         doc.text(`Descripción: ${animal.Descripcion}`);
         doc.moveDown();
 
-        // Verificar si la imagen existe
+    
         fs.exists(habitatImagePath, (exists) => {
             if (exists) {
                 console.log('Imagen encontrada, agregándola al PDF.');
@@ -135,13 +123,13 @@ app.get('/generar-pdf/:nombre', (req, res) => {
                 doc.text('Imagen del hábitat no disponible.', { align: 'center' });
             }
 
-            // Finalizar documento PDF
+          
             doc.end();
         });
     });
 });
 
-// Actualizar un animal
+
 app.put('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const { Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
