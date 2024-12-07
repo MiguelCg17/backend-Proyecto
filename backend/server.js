@@ -11,49 +11,14 @@ const port = process.env.PORT || 3000;  // Usa la variable de entorno PORT
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Rutas para servir imágenes estáticas (en caso de que quieras servir imágenes de animales, por ejemplo)
 app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
+// Configuración de la base de datos
 const dbUrl = process.env.DB_URL;
-
-
 const db = mysql.createPool(dbUrl);
 
-
-
-// Ruta para servir el formulario de inicio de sesión
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname,  'login.html'));
-});
-
-// Ruta para autenticar al usuario
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-
-    // Definir usuario y contraseña
-    const validUsername = 'admin';
-    const validPassword = 'admin123';
-
-    // Verificar si las credenciales son correctas
-    if (username === validUsername && password === validPassword) {
-        // Redirigir al panel de administración si las credenciales son correctas
-        res.redirect('/admin');
-    } else {
-        // Si las credenciales son incorrectas, redirigir de nuevo al login
-        res.send('<h1>Credenciales incorrectas. Por favor, intenta de nuevo.</h1><a href="/login">Volver a intentar</a>');
-    }
-});
-
-// Ruta para servir el formulario de administración
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname,  'admin.html'));
-});
-
-// Ruta para servir el formulario de usuario
-app.get('/usuario', (req, res) => {
-    res.sendFile(path.join(__dirname, 'usuario.html'));
-});
-
-// Obtener todos los animales
+// Rutas de la API (no se sirven archivos HTML desde aquí)
 app.get('/animales', (req, res) => {
     const query = 'SELECT * FROM animal';
     db.query(query, (err, results) => {
@@ -69,8 +34,7 @@ app.get('/animales', (req, res) => {
 app.post('/animales', (req, res) => {
     const { Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
 
-    // Formar la ruta de la imagen del hábitat en función del valor seleccionado
-    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`; 
+    const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
     const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -168,11 +132,11 @@ app.get('/generar-pdf/:nombre', (req, res) => {
     });
 });
 
+// Actualizar un animal
 app.put('/animales/:nombre', (req, res) => {
     const nombreAnimal = req.params.nombre;
     const { Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
 
-    // Verificar que los campos necesarios no estén vacíos
     if (!Especie || !Edad || !Habitat || !dieta || !Estado_Conservacion || !Pais_Origen || !Descripcion) {
         return res.status(400).send('Todos los campos son necesarios para actualizar el animal.');
     }
@@ -199,5 +163,5 @@ app.put('/animales/:nombre', (req, res) => {
 
 // Iniciar el servidor
 app.listen(port, () => {
-    console.log(`Servidor corriendo en ${port}`);
+    console.log(`Servidor corriendo en el puerto ${port}`);
 });
