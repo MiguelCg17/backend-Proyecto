@@ -4,6 +4,7 @@ const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');  // Importamos uuid para generar IDs únicos
 require('dotenv').config();
 
 const app = express();
@@ -65,10 +66,14 @@ app.post('/animales', (req, res) => {
     const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
     const Link = `/images/habitats/${Habitat.toLowerCase()}.jpg`;
 
-    const query = `INSERT INTO animal (Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    // Generar un UUID único para el animal
+    const idAnimal = uuidv4();
 
-    db.query(query, [Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link], (err, result) => {
+    // Consulta para insertar el nuevo animal con su ID único generado
+    const query = `INSERT INTO animal (id_animal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.query(query, [idAnimal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link], (err, result) => {
         if (err) {
             console.error('Error al insertar los datos:', err.message);
             return res.status(500).send('Error al insertar los datos.');
@@ -176,5 +181,6 @@ app.put('/animales/:nombre', (req, res) => {
 app.listen(port, () => {
     console.log(`Servidor corriendo en ${port}`);
 });
+
 
 
