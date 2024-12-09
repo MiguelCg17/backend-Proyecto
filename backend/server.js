@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const mysql = require('mysql2');
 const pdf = require('pdfkit');
-const axios = require('axios');  // Importar axios
+const axios = require('axios');  
 require('dotenv').config();
 
 const app = express();
@@ -14,11 +14,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de la base de datos
+
 const dbUrl = process.env.DB_URL;
 const db = mysql.createPool(dbUrl);
 
-// Rutas
+
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -57,9 +57,9 @@ app.get('/animales', (req, res) => {
 
 app.post('/animales', (req, res) => {
     const { id_animal, Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;  // Cambiado
+    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;  
 
-    // Consulta para insertar el nuevo animal usando el id_animal proporcionado
+    
     const query = `INSERT INTO animal (id_animal, Nombre, Especie, Edad, Habitat, dieta, Estado_Conservacion, Pais_Origen, Descripcion, Link)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
@@ -116,22 +116,21 @@ app.get('/generar-pdf/:id_animal', async (req, res) => {
         }
 
         const animal = results[0];
-        const habitatImageUrl = animal.Link;  // La URL de la imagen del hábitat
-
+        const habitatImageUrl = animal.Link;  
         try {
-            // Descargar la imagen usando axios
+           
             const response = await axios.get(habitatImageUrl, { responseType: 'arraybuffer' });
             const imageBuffer = Buffer.from(response.data);
 
-            // Crear el PDF
+           
             const doc = new pdf();
 
-            // Establecer los encabezados para la descarga del archivo PDF
+           
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename=animal_${idAnimal}.pdf`);
 
-            // Generar el contenido del PDF
-            doc.pipe(res); // Enviar el PDF directamente al cliente
+            
+            doc.pipe(res); 
 
             doc.fontSize(16).text(`Información del Animal: ${animal.Nombre}`, { align: 'center' });
             doc.moveDown();
@@ -145,10 +144,10 @@ app.get('/generar-pdf/:id_animal', async (req, res) => {
             doc.text(`Descripción: ${animal.Descripcion}`);
             doc.moveDown();
 
-            // Agregar la imagen del hábitat desde el buffer
+            
             doc.image(imageBuffer, { fit: [500, 400], align: 'center' });
 
-            doc.end(); // Finalizar el PDF
+            doc.end(); 
         } catch (downloadError) {
             console.error('Error al descargar la imagen:', downloadError.message);
             return res.status(500).send('Error al descargar la imagen del hábitat.');
@@ -159,7 +158,7 @@ app.get('/generar-pdf/:id_animal', async (req, res) => {
 app.put('/animales/:id_animal', (req, res) => {
     const idAnimal = req.params.id_animal;
     const { Nombre, Especie, Edad, Habitat, dieta = 'Desconocido', Estado_Conservacion, Pais_Origen, Descripcion } = req.body;
-    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;  // Cambiado
+    const Link = `https://miguelcg17.github.io/frontend-Proyecto/${Habitat.toLowerCase()}.jpg`;  
 
     const query = `UPDATE animal 
                    SET Nombre = ?, Especie = ?, Edad = ?, Habitat = ?, dieta = ?, Estado_Conservacion = ?, Pais_Origen = ?, Descripcion = ?, Link = ? 
